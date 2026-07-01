@@ -1,0 +1,7 @@
+PySide6
+SQLAlchemy
+faster-whisper
+sounddevice
+opencv-python
+requests
+numpy

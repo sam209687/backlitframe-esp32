@@ -1,0 +1,5 @@
+{
+  "engine": "faster-whisper",
+  "model": "small",
+  "language": "auto"
+}

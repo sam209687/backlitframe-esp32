@@ -1,0 +1,18 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Database
+database/smartshowroom.db
+
+# Logs
+logs/*.log
+
+# PlatformIO
+esp32_firmware/.pio/
+esp32_firmware/.vscode/
+
+# OS
+.DS_Store

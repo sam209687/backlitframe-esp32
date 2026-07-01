@@ -1,0 +1,7 @@
+{
+  "name": "Smart Showroom",
+  "version": "1.0",
+  "mode": "production",
+  "debug": true,
+  "log_level": "INFO"
+}
