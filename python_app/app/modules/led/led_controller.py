@@ -6,9 +6,20 @@ The actual FastLED rendering lives in esp32_firmware/src/effects/.
 
 from app.core.config_manager import load as load_config
 from app.core.logger import get_logger
-from app.services.esp32_service import send_command
+from app.services.esp32_service import ESP32Service
 
 logger = get_logger(__name__)
+
+
+def send_command(command: str):
+    """
+    Backward-compatible wrapper.
+
+    Older modules call send_command().
+    Internally we delegate to ESP32Service.
+    """
+
+    ESP32Service.send_effect(command)
 
 
 def start_led():

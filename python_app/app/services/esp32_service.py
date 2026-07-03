@@ -1,38 +1,54 @@
 """
 esp32_service.py
-Handles communication with ESP32 devices over HTTP (discovery, commands, status).
+
+Send commands to ESP32.
 """
 
-import requests
-from app.core.logger import get_logger
+import socket
 
-logger = get_logger(__name__)
-
-DEFAULT_TIMEOUT = 3  # seconds
+from app.core.database import get_session
+from app.models.device import Device
 
 
-def send_command(ip: str, payload: dict, path: str = "/command") -> dict | None:
-    """
-    Send a JSON command to an ESP32 device.
-    Example: send_command("192.168.1.50", {"effect": "sesame", "time": 30})
-    """
-    url = f"http://{ip}{path}"
-    try:
-        response = requests.post(url, json=payload, timeout=DEFAULT_TIMEOUT)
-        response.raise_for_status()
-        logger.info(f"Sent command to {ip}: {payload}")
-        return response.json() if response.content else {}
-    except requests.RequestException as e:
-        logger.error(f"Failed to reach device {ip}: {e}")
-        return None
+class ESP32Service:
 
+    PORT = 4210
 
-def get_status(ip: str) -> dict | None:
-    url = f"http://{ip}/status"
-    try:
-        response = requests.get(url, timeout=DEFAULT_TIMEOUT)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        logger.error(f"Failed to get status from {ip}: {e}")
-        return None
+    @classmethod
+    def send_effect(cls, effect):
+
+        session = get_session()
+
+        try:
+
+            device = (
+                session.query(Device)
+                .filter_by(status="connected")
+                .first()
+            )
+
+            if not device:
+                print("No ESP32 connected")
+                return
+
+            sock = socket.socket(
+                socket.AF_INET,
+                socket.SOCK_DGRAM
+            )
+
+            message = effect.encode()
+
+            sock.sendto(
+                message,
+                (device.ip, cls.PORT)
+            )
+
+            print("Sent:", effect)
+
+        except Exception as e:
+
+            print(e)
+
+        finally:
+
+            session.close()

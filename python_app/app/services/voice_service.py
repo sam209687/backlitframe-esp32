@@ -1,34 +1,178 @@
 """
 voice_service.py
-Wraps the speech-to-text engine configured in config/voice.json.
-Currently targets faster-whisper; can be swapped to Vosk by changing
-config only (no code change needed in callers).
+
+Voice activation and product matching logic
 """
 
-from app.core.config_manager import load as load_config
-from app.core.logger import get_logger
 
-logger = get_logger(__name__)
+from app.core.database import get_session
 
-
-def start_voice():
-    cfg = load_config("voice")
-    engine = cfg.get("engine", "faster-whisper")
-    logger.info(f"Starting voice engine: {engine} (model={cfg.get('model')})")
-
-    if engine == "faster-whisper":
-        _start_faster_whisper(cfg)
-    elif engine == "vosk":
-        _start_vosk(cfg)
-    else:
-        raise ValueError(f"Unsupported voice engine: {engine}")
+from app.models.welcome_keyword import WelcomeKeyword
+from app.models.product import Product
 
 
-def _start_faster_whisper(cfg: dict):
-    # from faster_whisper import WhisperModel
-    # model = WhisperModel(cfg["model"])
-    logger.info("faster-whisper engine placeholder - implement transcription loop here")
 
 
-def _start_vosk(cfg: dict):
-    logger.info("Vosk engine placeholder - implement transcription loop here")
+class VoiceService:
+
+
+    def __init__(self):
+
+        self.active = False
+
+
+
+    def check_welcome_phrase(
+        self,
+        text
+    ):
+
+        """
+        Checks if user said activation phrase
+        """
+
+
+        text = text.lower()
+
+
+
+        session = get_session()
+
+
+        try:
+
+
+            keywords = session.query(
+                WelcomeKeyword
+            ).filter_by(
+                enabled=True
+            ).all()
+
+
+
+            for item in keywords:
+
+
+                if item.phrase.lower() in text:
+
+
+                    print(
+                        "Voice activated:",
+                        item.phrase
+                    )
+
+
+                    self.active = True
+
+
+                    return True
+
+
+
+        finally:
+
+            session.close()
+
+
+
+        return False
+
+
+
+
+    def find_product(
+        self,
+        text
+    ):
+
+        """
+        Finds product from voice keywords
+        """
+
+
+        text = text.lower()
+
+
+
+        session = get_session()
+
+
+
+        try:
+
+
+            products = session.query(
+                Product
+            ).all()
+
+
+
+            for product in products:
+
+
+                for keyword in product.keywords_list():
+
+
+                    if keyword.lower() in text:
+
+
+                        print(
+                            "Product matched:",
+                            product.name
+                        )
+
+
+                        return product
+
+
+
+        finally:
+
+            session.close()
+
+
+
+        return None
+
+
+
+
+    def process_voice(
+        self,
+        text
+    ):
+
+
+        if not self.active:
+
+
+            activated = self.check_welcome_phrase(
+                text
+            )
+
+
+            if activated:
+
+                return "LISTENING"
+
+
+
+        else:
+
+
+            product = self.find_product(
+                text
+            )
+
+
+            if product:
+
+
+                self.active = False
+
+
+                return product
+
+
+
+        return None

@@ -18,3 +18,6 @@ from app.models.feature import Feature, CustomerFeature  # noqa: F401
 from app.models.device import Device  # noqa: F401
 from app.models.product import Product  # noqa: F401
 from app.models.schedule import Schedule  # noqa: F401
+from app.models.welcome_keyword import WelcomeKeyword
+from .settings import Setting
+from .media import Media
