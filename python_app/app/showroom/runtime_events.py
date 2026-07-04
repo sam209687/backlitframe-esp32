@@ -1,0 +1,38 @@
+"""
+runtime_events.py
+
+Central event names used by the runtime.
+
+Every module communicates using these events.
+"""
+
+
+class RuntimeEvents:
+
+    STATE_CHANGED = "STATE_CHANGED"
+
+    SESSION_STARTED = "SESSION_STARTED"
+
+    SESSION_ENDED = "SESSION_ENDED"
+
+    WAKEWORD_DETECTED = "WAKEWORD_DETECTED"
+
+    PRODUCT_FOUND = "PRODUCT_FOUND"
+
+    PRODUCT_NOT_FOUND = "PRODUCT_NOT_FOUND"
+
+    MEDIA_STARTED = "MEDIA_STARTED"
+
+    MEDIA_CHANGED = "MEDIA_CHANGED"
+
+    MEDIA_FINISHED = "MEDIA_FINISHED"
+
+    LED_STARTED = "LED_STARTED"
+
+    LED_FINISHED = "LED_FINISHED"
+
+    DEVICE_CONNECTED = "DEVICE_CONNECTED"
+
+    DEVICE_DISCONNECTED = "DEVICE_DISCONNECTED"
+
+    ERROR = "ERROR"

@@ -22,23 +22,21 @@ SettingsService.load()
 
 def main():
 
+    SettingsService.load()
+
     app = QApplication(sys.argv)
 
-
-    # Start ESP32 discovery listener
-
     discovery = DeviceDiscovery()
-
     discovery.start()
 
+    dashboard = MainWindow()
 
+    from app.ui.showroom_window import ShowroomWindow
 
-    window = MainWindow()
+    showroom = ShowroomWindow()
 
-    window.show()
+    dashboard.show()
 
+    showroom.show()
 
     sys.exit(app.exec())
-
-if __name__ == "__main__":
-    main()

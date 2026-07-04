@@ -1,9 +1,10 @@
 """
 esp32_service.py
 
-Send commands to ESP32.
+Service responsible for communicating with ESP32 devices.
 """
 
+import json
 import socket
 
 from app.core.database import get_session
@@ -15,7 +16,26 @@ class ESP32Service:
     PORT = 4210
 
     @classmethod
-    def send_effect(cls, effect):
+    def send(cls, ip: str, payload: dict):
+
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+            sock.sendto(
+                json.dumps(payload).encode(),
+                (ip, cls.PORT)
+            )
+
+            sock.close()
+
+            return True
+
+        except Exception as e:
+            print("ESP32 Error:", e)
+            return False
+
+    @classmethod
+    def send_effect(cls, effect: str):
 
         session = get_session()
 
@@ -29,26 +49,22 @@ class ESP32Service:
 
             if not device:
                 print("No ESP32 connected")
-                return
+                return False
 
-            sock = socket.socket(
-                socket.AF_INET,
-                socket.SOCK_DGRAM
+            return cls.send(
+                device.ip,
+                {
+                    "effect": effect
+                }
             )
-
-            message = effect.encode()
-
-            sock.sendto(
-                message,
-                (device.ip, cls.PORT)
-            )
-
-            print("Sent:", effect)
-
-        except Exception as e:
-
-            print(e)
 
         finally:
-
             session.close()
+
+
+def send_command(ip, payload):
+    """
+    Compatibility wrapper for older modules.
+    """
+
+    return ESP32Service.send(ip, payload)

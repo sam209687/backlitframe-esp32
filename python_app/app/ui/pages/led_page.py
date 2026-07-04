@@ -19,7 +19,7 @@ from app.core.config_manager import load as load_config, save as save_config
 from app.models.device import Device
 from app.modules.led.presets import EFFECT_PRESETS
 from app.modules.led.effects import EFFECT_META
-from app.services.esp32_service import send_command
+from app.services.esp32_service import ESP32Service
 
 logger = get_logger(__name__)
 
@@ -122,7 +122,7 @@ class LedPage(QWidget):
             QMessageBox.warning(self, "No device", "Add a device on the Devices tab first.")
             return
 
-        result = send_command(ip, {"effect": effect_name})
+        result = ESP32Service(ip, {"effect": effect_name})
         if result is not None:
             logger.info(f"Triggered {effect_name} on {ip}")
         else:

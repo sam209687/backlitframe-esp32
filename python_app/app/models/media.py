@@ -15,25 +15,21 @@ class Media(Base):
 
     id = Column(Integer, primary_key=True)
 
-    product_id = Column(
-        Integer,
-        ForeignKey("products.id"),
-        nullable=False
-    )
+    product_id = Column(Integer, ForeignKey("products.id"))
 
-    media_name = Column(String(200), nullable=False)
+    media_name = Column(String(200))
 
-    media_type = Column(String(20), nullable=False)
+    media_type = Column(String(20))
 
-    file_path = Column(String(500), nullable=False)
+    file_path = Column(String(500))
 
-    duration = Column(Integer, default=10)
+    duration = Column(Integer)
 
-    display_order = Column(Integer, default=1)
+    display_order = Column(Integer)
 
-    is_default = Column(Integer, default=1)
+    is_default = Column(Integer)
 
-    is_active = Column(Integer, default=1)
+    is_active = Column(Integer)
 
     description = Column(String(255))
 
@@ -41,8 +37,3 @@ class Media(Base):
         "Product",
         back_populates="media"
     )
-
-    def __repr__(self):
-        return (
-            f"<Media {self.media_name}>"
-        )
