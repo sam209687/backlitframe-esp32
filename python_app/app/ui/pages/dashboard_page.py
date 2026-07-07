@@ -1,16 +1,14 @@
 """
 dashboard_page.py
 
-Main dashboard page for Smart Showroom AI.
-This page displays the current showroom status and will be updated
-live by other services (Voice Engine, ESP32, HDMI Player, etc.).
+Live Dashboard for Smart Showroom AI.
+Displays runtime information received from RuntimeMonitor.
 """
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
-    QHBoxLayout,
     QLabel,
     QFrame,
     QTextEdit,
@@ -19,175 +17,253 @@ from PySide6.QtWidgets import (
 
 class DashboardPage(QWidget):
 
-    def __init__(self):
+    def __init__(self, runtime = None):
+
         super().__init__()
+
+        self.runtime = runtime
+
+        self.monitor = runtime.monitor
 
         self.build_ui()
 
+        self.monitor.subscribe(
+            self.update_runtime
+        )
+
         self.refresh()
 
-    # --------------------------------------------------------
-    # UI
-    # --------------------------------------------------------
+    # -------------------------------------------------
 
     def build_ui(self):
 
-        main_layout = QVBoxLayout()
-        main_layout.setSpacing(15)
+        layout = QVBoxLayout()
 
         title = QLabel("Smart Showroom Dashboard")
+
         title.setAlignment(Qt.AlignCenter)
+
         title.setStyleSheet("""
-            font-size:22px;
+            font-size:24px;
             font-weight:bold;
             padding:10px;
         """)
 
-        main_layout.addWidget(title)
+        layout.addWidget(title)
 
-        # ---------------- Status Card ----------------
+        # -------------------------------------------------
 
-        card = QFrame()
-        card.setFrameShape(QFrame.StyledPanel)
+        status_card = QFrame()
 
-        card_layout = QVBoxLayout(card)
+        status_card.setFrameShape(QFrame.StyledPanel)
 
-        self.lbl_esp32 = QLabel()
+        status_layout = QVBoxLayout(status_card)
+
+        self.lbl_runtime = QLabel()
+
         self.lbl_voice = QLabel()
-        self.lbl_hdmi = QLabel()
-        self.lbl_customer = QLabel()
-        self.lbl_timer = QLabel()
 
-        card_layout.addWidget(self.lbl_esp32)
-        card_layout.addWidget(self.lbl_voice)
-        card_layout.addWidget(self.lbl_hdmi)
-        card_layout.addWidget(self.lbl_customer)
-        card_layout.addWidget(self.lbl_timer)
+        self.lbl_product = QLabel()
 
-        main_layout.addWidget(card)
+        self.lbl_media = QLabel()
 
-        # ---------------- Last Voice ----------------
+        self.lbl_session = QLabel()
+
+        self.lbl_error = QLabel()
+
+        status_layout.addWidget(self.lbl_runtime)
+
+        status_layout.addWidget(self.lbl_voice)
+
+        status_layout.addWidget(self.lbl_product)
+
+        status_layout.addWidget(self.lbl_media)
+
+        status_layout.addWidget(self.lbl_session)
+
+        status_layout.addWidget(self.lbl_error)
+
+        layout.addWidget(status_card)
+
+        # -------------------------------------------------
 
         voice_card = QFrame()
+
         voice_card.setFrameShape(QFrame.StyledPanel)
 
         voice_layout = QVBoxLayout(voice_card)
 
-        voice_title = QLabel("Last Voice Command")
+        voice_layout.addWidget(
+            QLabel("Last Voice")
+        )
 
         self.lbl_last_voice = QLabel("-")
 
-        voice_layout.addWidget(voice_title)
-        voice_layout.addWidget(self.lbl_last_voice)
+        voice_layout.addWidget(
+            self.lbl_last_voice
+        )
 
-        main_layout.addWidget(voice_card)
+        layout.addWidget(voice_card)
 
-        # ---------------- Last Product ----------------
+        # -------------------------------------------------
 
         product_card = QFrame()
+
         product_card.setFrameShape(QFrame.StyledPanel)
 
         product_layout = QVBoxLayout(product_card)
 
-        product_title = QLabel("Last Product")
+        product_layout.addWidget(
+            QLabel("Current Product")
+        )
 
         self.lbl_last_product = QLabel("-")
 
-        product_layout.addWidget(product_title)
-        product_layout.addWidget(self.lbl_last_product)
+        product_layout.addWidget(
+            self.lbl_last_product
+        )
 
-        main_layout.addWidget(product_card)
+        layout.addWidget(product_card)
 
-        # ---------------- Logs ----------------
+        # -------------------------------------------------
 
-        log_title = QLabel("System Log")
+        log_title = QLabel("Runtime Log")
+
+        layout.addWidget(log_title)
 
         self.log_box = QTextEdit()
+
         self.log_box.setReadOnly(True)
+
         self.log_box.setMinimumHeight(180)
 
-        main_layout.addWidget(log_title)
-        main_layout.addWidget(self.log_box)
+        layout.addWidget(self.log_box)
 
-        self.setLayout(main_layout)
+        self.setLayout(layout)
 
-    # --------------------------------------------------------
-    # Refresh
-    # --------------------------------------------------------
+    # -------------------------------------------------
 
     def refresh(self):
-        """
-        Refresh all dashboard values.
-        Later these values will come from services/database.
-        """
 
-        self.lbl_esp32.setText("ESP32 Status : Connected")
+        self.update_runtime()
 
-        self.lbl_voice.setText("Voice Engine : Idle")
-
-        self.lbl_hdmi.setText("HDMI Display : Waiting")
-
-        self.lbl_customer.setText("Current Customer : None")
-
-        self.lbl_timer.setText("Welcome Timeout : 10 sec")
-
-    # --------------------------------------------------------
-    # Compatibility
-    # --------------------------------------------------------
+    # -------------------------------------------------
 
     def refresh_customers(self):
-        """
-        Temporary compatibility function.
-
-        Existing MainWindow calls this method.
-        Internally it simply refreshes the dashboard.
-        """
 
         self.refresh()
 
-    # --------------------------------------------------------
-    # Update Methods
-    # --------------------------------------------------------
+    # -------------------------------------------------
+
+    def update_runtime(self):
+
+        monitor = self.monitor
+
+        self.lbl_runtime.setText(
+            f"Runtime State : {monitor.state}"
+        )
+
+        self.lbl_voice.setText(
+            f"Voice : {monitor.voice_text}"
+        )
+
+        if monitor.product:
+
+            product_name = getattr(
+                monitor.product,
+                "product_name",
+                getattr(
+                    monitor.product,
+                    "name",
+                    "-"
+                )
+            )
+
+            self.lbl_product.setText(
+                f"Product : {product_name}"
+            )
+
+            self.lbl_last_product.setText(
+                product_name
+            )
+
+        else:
+
+            self.lbl_product.setText(
+                "Product : -"
+            )
+
+            self.lbl_last_product.setText(
+                "-"
+            )
+
+        if monitor.media:
+
+            self.lbl_media.setText(
+                f"Media : {monitor.media.media_name}"
+            )
+
+        else:
+
+            self.lbl_media.setText(
+                "Media : -"
+            )
+
+        session_product = "-"
+
+        if self.runtime.session.product:
+
+            session_product = getattr(
+                self.runtime.session.product,
+                "product_name",
+                getattr(
+                    self.runtime.session.product,
+                    "name",
+                    "-"
+                )
+            )
+
+        self.lbl_session.setText(
+            f"Session : {session_product}"
+        )
+
+        self.lbl_error.setText(
+            f"Error : {monitor.error}"
+        )
+
+        self.lbl_last_voice.setText(
+            monitor.voice_text or "-"
+        )
+
+    # -------------------------------------------------
 
     def update_voice_status(self, status):
 
-        self.lbl_voice.setText(f"Voice Engine : {status}")
-
-    def update_esp32_status(self, status):
-
-        self.lbl_esp32.setText(f"ESP32 Status : {status}")
-
-    def update_hdmi_status(self, status):
-
-        self.lbl_hdmi.setText(f"HDMI Display : {status}")
-
-    def update_customer(self, customer):
-
-        self.lbl_customer.setText(
-            f"Current Customer : {customer}"
+        self.lbl_voice.setText(
+            f"Voice : {status}"
         )
+
+    # -------------------------------------------------
 
     def update_last_voice(self, text):
 
         self.lbl_last_voice.setText(text)
 
+    # -------------------------------------------------
+
     def update_last_product(self, product):
 
         self.lbl_last_product.setText(product)
+
+    # -------------------------------------------------
 
     def add_log(self, message):
 
         self.log_box.append(message)
 
-    # --------------------------------------------------------
-    # Reset
-    # --------------------------------------------------------
+    # -------------------------------------------------
 
     def clear_dashboard(self):
-
-        self.lbl_last_voice.setText("-")
-
-        self.lbl_last_product.setText("-")
 
         self.log_box.clear()
 

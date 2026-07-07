@@ -1,70 +1,104 @@
 """
 esp32_service.py
 
-Service responsible for communicating with ESP32 devices.
+Single interface between Python and ESP32.
 """
 
-import json
-import socket
-
-from app.core.database import get_session
-from app.models.device import Device
+import requests
 
 
 class ESP32Service:
 
-    PORT = 4210
+    _ip = None
+    _timeout = 2
+
+    # ------------------------------------
 
     @classmethod
-    def send(cls, ip: str, payload: dict):
+    def set_ip(cls, ip):
+
+        cls._ip = ip
+
+        print(f"ESP32 IP : {ip}")
+
+    # ------------------------------------
+
+    @classmethod
+    def connected(cls):
+
+        return cls._ip is not None
+
+    # ------------------------------------
+
+    @classmethod
+    def _url(cls, path):
+
+        return f"http://{cls._ip}/{path}"
+
+    # ------------------------------------
+
+    @classmethod
+    def send(cls, path):
+
+        if not cls.connected():
+
+            print("ESP32 not connected")
+            return False
 
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-            sock.sendto(
-                json.dumps(payload).encode(),
-                (ip, cls.PORT)
+            url = cls._url(path)
+
+            print("GET", url)
+
+            requests.get(
+                url,
+                timeout=cls._timeout
             )
-
-            sock.close()
 
             return True
 
         except Exception as e:
+
             print("ESP32 Error:", e)
+
             return False
 
+    # ------------------------------------
+
     @classmethod
-    def send_effect(cls, effect: str):
+    def play(cls, effect):
 
-        session = get_session()
+        return cls.send(
+            f"effect/{effect}"
+        )
 
-        try:
+    # ------------------------------------
 
-            device = (
-                session.query(Device)
-                .filter_by(status="connected")
-                .first()
-            )
+    @classmethod
+    def stop(cls):
 
-            if not device:
-                print("No ESP32 connected")
-                return False
+        return cls.send("stop")
 
-            return cls.send(
-                device.ip,
-                {
-                    "effect": effect
-                }
-            )
+    # ------------------------------------
 
-        finally:
-            session.close()
+    @classmethod
+    def brightness(cls, value):
 
+        return cls.send(
+            f"brightness/{value}"
+        )
 
-def send_command(ip, payload):
-    """
-    Compatibility wrapper for older modules.
-    """
+    # ------------------------------------
 
-    return ESP32Service.send(ip, payload)
+    @classmethod
+    def reboot(cls):
+
+        return cls.send("restart")
+
+    # ------------------------------------
+
+    @classmethod
+    def ping(cls):
+
+        return cls.send("ping")

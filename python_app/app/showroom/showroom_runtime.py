@@ -1,9 +1,9 @@
 """
 showroom_runtime.py
 
-Public Runtime API.
+Central runtime for Smart Showroom AI.
 
-The Dashboard communicates only with this class.
+Every module communicates through this class.
 """
 
 from app.showroom.showroom_state import ShowroomState
@@ -11,6 +11,8 @@ from app.showroom.session import ShowroomSession
 from app.showroom.event_bus import EventBus
 
 from app.showroom.runtime_manager import RuntimeManager
+from app.showroom.runtime_monitor import RuntimeMonitor
+from app.showroom.runtime_logger import RuntimeLogger
 
 from app.services.voice_engine import VoiceEngine
 from app.services.media_engine.media_engine import MediaEngine
@@ -22,16 +24,28 @@ class ShowroomRuntime:
 
     def __init__(self):
 
-        # Runtime state
+        # -------------------------------------------------
+        # Runtime State
+        # -------------------------------------------------
+
         self.state = ShowroomState.STARTING
 
-        # Current customer session
+        # -------------------------------------------------
+        # Current Session
+        # -------------------------------------------------
+
         self.session = ShowroomSession()
 
-        # Event bus
+        # -------------------------------------------------
+        # Event Bus
+        # -------------------------------------------------
+
         self.events = EventBus()
 
+        # -------------------------------------------------
         # Services
+        # -------------------------------------------------
+
         self.voice_engine = VoiceEngine()
 
         self.media_engine = MediaEngine()
@@ -40,7 +54,22 @@ class ShowroomRuntime:
 
         self.products = ProductService()
 
-        # Runtime logic
+        # -------------------------------------------------
+        # Runtime Monitor
+        # -------------------------------------------------
+
+        self.monitor = RuntimeMonitor(self)
+
+        # -------------------------------------------------
+        # Runtime Logger
+        # -------------------------------------------------
+
+        self.logger = RuntimeLogger(self)
+
+        # -------------------------------------------------
+        # Runtime Manager
+        # -------------------------------------------------
+
         self.manager = RuntimeManager(self)
 
     # -------------------------------------------------

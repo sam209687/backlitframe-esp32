@@ -31,7 +31,7 @@ CONFIG_FILES = [
 
 class SettingsPage(QWidget):
 
-    def __init__(self):
+    def __init__(self, runtime = None):
         super().__init__()
 
         self.current_config = None

@@ -26,7 +26,7 @@ from app.models.device import Device
 class DevicesPage(QWidget):
 
 
-    def __init__(self):
+    def __init__(self, runtime = None):
 
         super().__init__()
 

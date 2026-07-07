@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 
 
 class LedPage(QWidget):
-    def __init__(self):
+    def __init__(self, runtime = None):
         super().__init__()
         self._build_ui()
         self.refresh_devices()

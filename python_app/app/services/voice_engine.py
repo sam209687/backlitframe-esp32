@@ -1,32 +1,18 @@
 """
 voice_engine.py
 
-Central voice engine for Smart Showroom.
-
-Responsibilities
-----------------
-- Wait for welcome keyword
-- Listen for product request
-- Match product
-- Execute product action
-- Notify dashboard via callbacks
-
-This class DOES NOT know about:
-    - PySide UI
-    - ESP32 implementation
-    - Media Player implementation
-
-Everything is event driven.
+Simple Voice Engine
+Microphone -> Whisper -> VoiceRouter -> ProductMatcher -> Action
 """
 
 from threading import Thread
 import time
 
 from app.services.settings_service import SettingsService
-from app.services.whisper_service import WhisperService
 from app.services.microphone_service import MicrophoneService
-from app.services.product_service import ProductService
-from app.services.welcome_service import WelcomeService
+from app.services.whisper_service import WhisperService
+from app.services.voice_router import VoiceRouter
+from app.services.product_matcher import ProductMatcher
 from app.services.action_service import ActionService
 
 
@@ -36,19 +22,15 @@ class VoiceEngine:
 
         self.settings = SettingsService()
 
-        self.whisper = WhisperService()
-
         self.microphone = MicrophoneService()
 
-        self.products = ProductService()
-
-        self.welcome = WelcomeService()
+        self.whisper = WhisperService()
 
         self.running = False
-
         self.thread = None
 
-        # Dashboard callbacks
+        # dashboard callbacks
+
         self.on_idle = None
         self.on_listening = None
         self.on_wakeup = None
@@ -80,8 +62,6 @@ class VoiceEngine:
 
         self.running = False
 
-        print("Voice Engine Stopped")
-
     # -------------------------------------------------
 
     def run(self):
@@ -90,11 +70,12 @@ class VoiceEngine:
 
             try:
 
-                self.wait_for_wakeup()
+                self.listen()
 
             except Exception as e:
 
-                print("Voice Engine Error:", e)
+                print("\nVoice Engine Error")
+                print(e)
 
                 if self.on_error:
                     self.on_error(str(e))
@@ -103,83 +84,120 @@ class VoiceEngine:
 
     # -------------------------------------------------
 
-    def wait_for_wakeup(self):
+    def listen(self):
 
         if self.on_idle:
             self.on_idle()
 
-        print("\nWaiting for welcome keyword...")
+        print()
+        print("========================================")
+        print("Listening...")
+        print("========================================")
 
-        audio = self.microphone.record()
+        audio = self.microphone.record(seconds=3)
+
+        if audio is None:
+
+            print("Microphone Error")
+            return
 
         text = self.whisper.transcribe(audio)
 
-        print("Heard:", text)
-
-        if not text:
-            return
-
-        matched = self.welcome.match(text)
-
-        if not matched:
-            return
-
-        print("Wake word detected")
-
-        if self.on_wakeup:
-            self.on_wakeup(text)
-
-        self.listen_for_product()
-
-    # -------------------------------------------------
-
-    def listen_for_product(self):
-
-        timeout = int(
-            self.settings.get(
-                "voice_listen_timeout",
-                default="10"
-            )
-        )
-
-        if self.on_listening:
-            self.on_listening(timeout)
-
-        print(f"Listening for product ({timeout} sec)...")
-
-        audio = self.microphone.record(
-            seconds=timeout
-        )
-
-        text = self.whisper.transcribe(audio)
-
-        print("Customer:", text)
+        print()
+        print("Whisper")
+        print("--------------------------------")
+        print(repr(text))
+        print("--------------------------------")
 
         if not text:
 
-            if self.on_timeout:
-                self.on_timeout()
+            print("Nothing recognized")
+            return
+
+        route = VoiceRouter.route(text)
+
+        intent = route["intent"]
+
+        print()
+        print("Intent :", intent.value)
+
+        # ----------------------------
+        # Greeting
+        # ----------------------------
+
+        if route["greeting"]:
+
+            print("Greeting detected")
+
+            if self.on_wakeup:
+                self.on_wakeup(text)
 
             return
 
-        product = self.products.find_by_voice(text)
+        # ----------------------------
+        # Help
+        # ----------------------------
 
-        if not product:
+        if route["help"]:
 
-            print("No product matched")
-
-            if self.on_timeout:
-                self.on_timeout()
+            print("Help requested")
 
             return
 
-        print("Matched:", product)
+        # ----------------------------
+        # Repeat
+        # ----------------------------
 
-        # Notify Dashboard
-        if self.on_product:
-            self.on_product(product)
+        if route["repeat"]:
 
-        # Execute configured action
-        ActionService.execute(product)
+            print("Repeat requested")
 
-        print("Product action completed")
+            return
+
+        # ----------------------------
+        # Stop
+        # ----------------------------
+
+        if route["stop"]:
+
+            print("Stop requested")
+
+            return
+
+        # ----------------------------
+        # Product Search
+        # ----------------------------
+
+        if route["search_product"]:
+
+            result = ProductMatcher.match(text)
+
+            if not result:
+
+                print("No Product Found")
+
+                if self.on_timeout:
+                    self.on_timeout()
+
+                return
+
+            product = result["product"]
+
+            print()
+            print("Matched Product")
+            print("--------------------------------")
+            print(product.name)
+            print(product.led_effect)
+            print(product.media_path)
+            print("--------------------------------")
+
+            if self.on_product:
+                self.on_product(product)
+
+            ActionService.execute(product)
+
+            print("LED Animation Started")
+
+            return
+
+        print("Unknown command")

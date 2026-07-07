@@ -1,7 +1,8 @@
 """
 welcome_service.py
 
-Loads welcome keywords from database.
+Loads welcome keywords from the database and
+matches spoken text against the configured phrases.
 """
 
 from app.core.database import get_session
@@ -12,28 +13,34 @@ class WelcomeService:
 
     @staticmethod
     def get_keywords():
+        """
+        Returns all enabled welcome phrases.
+        """
 
         session = get_session()
 
         try:
 
-            rows = (
+            return (
                 session.query(WelcomeKeyword)
-                .filter(WelcomeKeyword.enabled == 1)
+                .filter(WelcomeKeyword.enabled == True)
                 .all()
             )
-
-            return rows
 
         finally:
             session.close()
 
+    # -------------------------------------------------
+
     @staticmethod
     def match(text: str):
         """
-        Returns matching WelcomeKeyword object
-        if spoken text contains one.
+        Returns the matching WelcomeKeyword object
+        if the spoken text contains one of the configured phrases.
         """
+
+        if not text:
+            return None
 
         session = get_session()
 
@@ -41,16 +48,28 @@ class WelcomeService:
 
             rows = (
                 session.query(WelcomeKeyword)
-                .filter(WelcomeKeyword.enabled == 1)
+                .filter(WelcomeKeyword.enabled == True)
                 .all()
             )
 
-            text = text.lower()
+            spoken = text.lower().strip()
+
+            print("\nConfigured Welcome Phrases")
+            print("--------------------------------")
 
             for row in rows:
 
-                if row.keyword.lower() in text:
+                phrase = (row.phrase or "").lower().strip()
+
+                print(f"Checking : '{phrase}'")
+
+                if phrase and phrase in spoken:
+
+                    print(f"Matched  : '{row.phrase}'")
+
                     return row
+
+            print("No welcome phrase matched")
 
             return None
 

@@ -1,4 +1,13 @@
-from PySide6.QtWidgets import QMainWindow, QTabWidget
+"""
+main_window.py
+
+Main application window for Smart Showroom AI.
+"""
+
+from PySide6.QtWidgets import (
+    QMainWindow,
+    QTabWidget,
+)
 
 from app.ui.pages.dashboard_page import DashboardPage
 from app.ui.pages.products_page import ProductsPage
@@ -10,12 +19,14 @@ from app.ui.pages.settings_page import SettingsPage
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, runtime):
 
         super().__init__()
 
+        self.runtime = runtime
+
         self.setWindowTitle(
-            "Smart Showroom AI - Dashboard"
+            "Smart Showroom AI"
         )
 
         self.resize(
@@ -23,96 +34,83 @@ class MainWindow(QMainWindow):
             800
         )
 
+        # -------------------------------------------------
+        # Pages
+        # -------------------------------------------------
 
-        # Create pages first
-
-        self.dashboard_page = DashboardPage()
+        self.dashboard_page = DashboardPage(runtime)
 
         self.products_page = ProductsPage()
 
         self.devices_page = DevicesPage()
 
-        self.voice_page = VoicePage()
+        self.voice_page = VoicePage(runtime)
 
-        self.led_page = LedPage()
+        self.led_page = LedPage(runtime)
 
         self.settings_page = SettingsPage()
 
-
-
-        # Create tabs
+        # -------------------------------------------------
+        # Tabs
+        # -------------------------------------------------
 
         self.tabs = QTabWidget()
-
 
         self.tabs.addTab(
             self.dashboard_page,
             "Dashboard"
         )
 
-
         self.tabs.addTab(
             self.products_page,
             "Products"
         )
-
 
         self.tabs.addTab(
             self.devices_page,
             "Devices"
         )
 
-
         self.tabs.addTab(
             self.voice_page,
             "Voice"
         )
-
 
         self.tabs.addTab(
             self.led_page,
             "LED"
         )
 
-
         self.tabs.addTab(
             self.settings_page,
             "Settings"
         )
 
-
-
         self.tabs.currentChanged.connect(
             self.refresh_page
         )
-
 
         self.setCentralWidget(
             self.tabs
         )
 
+    # -------------------------------------------------
 
-
-    def refresh_page(self,index):
+    def refresh_page(self, index):
 
         page = self.tabs.widget(index)
-
 
         if page == self.dashboard_page:
             self.dashboard_page.refresh_customers()
 
-
         elif page == self.products_page:
             self.products_page.refresh_table()
-
 
         elif page == self.devices_page:
             self.devices_page.refresh_table()
 
-
         elif page == self.voice_page:
             self.voice_page.refresh_devices()
-
 
         elif page == self.led_page:
             self.led_page.refresh_devices()

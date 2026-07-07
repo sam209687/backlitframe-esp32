@@ -42,7 +42,7 @@ LED_EFFECTS = [
 
 class ProductsPage(QWidget):
 
-    def __init__(self):
+    def __init__(self, runtime = None):
 
         super().__init__()
 

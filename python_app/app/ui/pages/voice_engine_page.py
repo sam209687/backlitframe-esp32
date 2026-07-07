@@ -13,7 +13,7 @@ from app.ui.widgets.voice.log_panel import LogPanel
 
 class VoiceEnginePage(QWidget):
 
-    def __init__(self):
+    def __init__(self, runtime = None):
         super().__init__()
 
         main = QVBoxLayout()

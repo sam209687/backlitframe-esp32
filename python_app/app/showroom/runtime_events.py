@@ -1,38 +1,92 @@
 """
 runtime_events.py
 
-Central event names used by the runtime.
+Central list of events used by the Smart Showroom Runtime.
 
-Every module communicates using these events.
+Every service publishes events here instead of directly
+calling another module.
 """
 
 
 class RuntimeEvents:
 
-    STATE_CHANGED = "STATE_CHANGED"
+    # --------------------------------------------------
+    # Runtime
+    # --------------------------------------------------
 
-    SESSION_STARTED = "SESSION_STARTED"
+    STATE_CHANGED = "state_changed"
 
-    SESSION_ENDED = "SESSION_ENDED"
+    ERROR = "runtime_error"
 
-    WAKEWORD_DETECTED = "WAKEWORD_DETECTED"
+    WARNING = "runtime_warning"
 
-    PRODUCT_FOUND = "PRODUCT_FOUND"
+    # --------------------------------------------------
+    # Voice
+    # --------------------------------------------------
 
-    PRODUCT_NOT_FOUND = "PRODUCT_NOT_FOUND"
+    WAKEWORD_DETECTED = "wakeword_detected"
 
-    MEDIA_STARTED = "MEDIA_STARTED"
+    LISTENING_STARTED = "listening_started"
 
-    MEDIA_CHANGED = "MEDIA_CHANGED"
+    LISTENING_STOPPED = "listening_stopped"
 
-    MEDIA_FINISHED = "MEDIA_FINISHED"
+    VOICE_TEXT = "voice_text"
 
-    LED_STARTED = "LED_STARTED"
+    PRODUCT_FOUND = "product_found"
 
-    LED_FINISHED = "LED_FINISHED"
+    PRODUCT_NOT_FOUND = "product_not_found"
 
-    DEVICE_CONNECTED = "DEVICE_CONNECTED"
+    VOICE_TIMEOUT = "voice_timeout"
 
-    DEVICE_DISCONNECTED = "DEVICE_DISCONNECTED"
+    # --------------------------------------------------
+    # Media
+    # --------------------------------------------------
 
-    ERROR = "ERROR"
+    MEDIA_STARTED = "media_started"
+
+    MEDIA_CHANGED = "media_changed"
+
+    MEDIA_FINISHED = "media_finished"
+
+    SLIDESHOW_STARTED = "slideshow_started"
+
+    SLIDESHOW_FINISHED = "slideshow_finished"
+
+    DEFAULT_MEDIA = "default_media"
+
+    # --------------------------------------------------
+    # LED
+    # --------------------------------------------------
+
+    LED_EFFECT_CHANGED = "led_effect_changed"
+
+    # --------------------------------------------------
+    # ESP32
+    # --------------------------------------------------
+
+    ESP32_CONNECTED = "esp32_connected"
+
+    ESP32_DISCONNECTED = "esp32_disconnected"
+
+    RELAY_CHANGED = "relay_changed"
+
+    HEARTBEAT = "heartbeat"
+
+    # --------------------------------------------------
+    # Customer Session
+    # --------------------------------------------------
+
+    SESSION_STARTED = "session_started"
+
+    SESSION_ENDED = "session_ended"
+
+    CUSTOMER_DETECTED = "customer_detected"
+
+    CUSTOMER_LEFT = "customer_left"
+
+    # --------------------------------------------------
+    # Dashboard
+
+    DASHBOARD_REFRESH = "dashboard_refresh"
+
+    LOG_MESSAGE = "log_message"

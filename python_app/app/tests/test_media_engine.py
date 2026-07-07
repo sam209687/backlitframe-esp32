@@ -1,16 +1,16 @@
 from PySide6.QtWidgets import QApplication
 
-from app.ui.showroom_window import ShowroomWindow
+from app.showroom.showroom_runtime import ShowroomRuntime
 from app.services.product_service import ProductService
 
 app = QApplication([])
 
-window = ShowroomWindow()
-
-window.show()
+runtime = ShowroomRuntime()
 
 product = ProductService.get_by_id(1)
 
-window.show_product(product)
+runtime.media.show_product(product)
+
+runtime.media.video_widget().show()
 
 app.exec()

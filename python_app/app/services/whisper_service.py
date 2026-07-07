@@ -37,17 +37,14 @@ class WhisperService:
 
 
 
-    def transcribe(
-        self,
-        audio_file
-    ):
+    def transcribe(self, audio):
 
 
         segments, info = self.model.transcribe(
 
-    audio_file,
+    audio,
 
-    beam_size=5,
+    beam_size=1,
 
     language="en",
 

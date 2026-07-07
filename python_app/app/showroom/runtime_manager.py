@@ -2,6 +2,17 @@
 runtime_manager.py
 
 Contains all showroom runtime logic.
+
+Responsibilities
+----------------
+• Runtime state transitions
+• Voice event handling
+• Product activation
+• Media playback
+• LED control
+• Runtime event publishing
+
+No UI code.
 """
 
 from app.showroom.showroom_state import ShowroomState
@@ -26,6 +37,9 @@ class RuntimeManager:
 
         self.session = runtime.session
 
+        # Media callbacks
+        self.media.on_media_changed = self.on_media_changed
+
         self.register_callbacks()
 
     # -------------------------------------------------
@@ -33,15 +47,10 @@ class RuntimeManager:
     def register_callbacks(self):
 
         self.voice.on_idle = self.on_idle
-
         self.voice.on_wakeup = self.on_wakeup
-
         self.voice.on_listening = self.on_listening
-
         self.voice.on_product = self.on_product
-
         self.voice.on_timeout = self.on_timeout
-
         self.voice.on_error = self.on_error
 
     # -------------------------------------------------
@@ -142,11 +151,12 @@ class RuntimeManager:
             product
         )
 
-        # LED Effect
-        if hasattr(product, "led_effect") and product.led_effect:
+        # Trigger LED effect
+        if getattr(product, "led_effect", None):
+
             trigger_effect(product.led_effect)
 
-        # Media
+        # Start media slideshow
         self.media.show_product(product)
 
         self.change_state(
@@ -157,7 +167,13 @@ class RuntimeManager:
 
     def on_timeout(self):
 
-        self.session.end()
+        if hasattr(self.session, "end"):
+
+            self.session.end()
+
+        else:
+
+            self.session.reset()
 
         self.change_state(
             ShowroomState.IDLE
@@ -182,9 +198,18 @@ class RuntimeManager:
 
         self.runtime.state = state
 
-        print(f"Runtime State -> {state}")
-
         self.events.publish(
             RuntimeEvents.STATE_CHANGED,
             state
+        )
+
+        print(f"Runtime State -> {state}")
+
+    # -------------------------------------------------
+
+    def on_media_changed(self, media):
+
+        self.events.publish(
+            RuntimeEvents.MEDIA_CHANGED,
+            media
         )
