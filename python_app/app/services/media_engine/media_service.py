@@ -47,6 +47,25 @@ class MediaService:
     # --------------------------------------------------
 
     @staticmethod
+    def get_all_for_product(product_id):
+
+        session = get_session()
+
+        try:
+
+            return (
+                session.query(Media)
+                .filter(Media.product_id == product_id)
+                .order_by(Media.display_order.asc(), Media.id.asc())
+                .all()
+            )
+
+        finally:
+            session.close()
+
+    # --------------------------------------------------
+
+    @staticmethod
     def get_images(product_id):
 
         return [
@@ -117,6 +136,7 @@ class MediaService:
         duration=10,
         display_order=1,
         is_default=0,
+        is_active=1,
         description=""
     ):
 
@@ -132,11 +152,53 @@ class MediaService:
                 duration=duration,
                 display_order=display_order,
                 is_default=is_default,
-                is_active=1,
+                is_active=is_active,
                 description=description
             )
 
             session.add(media)
+
+            session.commit()
+
+            session.refresh(media)
+
+            return media
+
+        finally:
+            session.close()
+
+    # --------------------------------------------------
+
+    @staticmethod
+    def update_media(
+        media_id,
+        media_name,
+        media_type,
+        file_path,
+        duration=10,
+        display_order=1,
+        is_default=0,
+        is_active=1,
+        description=""
+    ):
+
+        session = get_session()
+
+        try:
+
+            media = session.get(Media, media_id)
+
+            if not media:
+                return None
+
+            media.media_name = media_name
+            media.media_type = media_type
+            media.file_path = file_path
+            media.duration = duration
+            media.display_order = display_order
+            media.is_default = is_default
+            media.is_active = is_active
+            media.description = description
 
             session.commit()
 

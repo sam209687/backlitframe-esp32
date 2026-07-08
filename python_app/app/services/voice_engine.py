@@ -12,6 +12,7 @@ from app.services.settings_service import SettingsService
 from app.services.microphone_service import MicrophoneService
 from app.services.whisper_service import WhisperService
 from app.services.voice_router import VoiceRouter
+from app.services.voice.wakeword_service import WakeWordService
 from app.services.product_matcher import ProductMatcher
 from app.services.action_service import ActionService
 
@@ -25,6 +26,8 @@ class VoiceEngine:
         self.microphone = MicrophoneService()
 
         self.whisper = WhisperService()
+
+        self.wake = WakeWordService()
 
         self.running = False
         self.thread = None
@@ -112,6 +115,15 @@ class VoiceEngine:
         if not text:
 
             print("Nothing recognized")
+            return
+
+        if self.wake.activated(text):
+
+            print("Wake keyword detected")
+
+            if self.on_wakeup:
+                self.on_wakeup(text)
+
             return
 
         route = VoiceRouter.route(text)

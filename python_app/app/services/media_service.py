@@ -68,6 +68,13 @@ class MediaService:
     # -------------------------------------------------
 
     @classmethod
+    def play_folder(cls, media_path):
+
+        return cls.play(media_path)
+
+    # -------------------------------------------------
+
+    @classmethod
     def stop(cls):
 
         if not cls.available():

@@ -27,9 +27,16 @@ def start_led():
     logger.info(f"LED module ready (default_effect={cfg.get('default_effect')})")
 
 
-def trigger_effect(device_ip: str, effect_name: str, duration: int = 30):
+def trigger_effect(device_ip: str, effect_name: str | None = None, duration: int = 30):
     """
     effect_name examples: SESAME, GROUNDNUT, COCONUT, PC_MODE, COZY_READING, FILLING_OIL
     """
+    if effect_name is None:
+        effect_name = device_ip
+        device_ip = None
+
+    if device_ip:
+        ESP32Service.set_ip(device_ip)
+
     logger.info(f"Triggering LED effect '{effect_name}' on {device_ip} for {duration}s")
-    return send_command(device_ip, {"effect": effect_name, "time": duration})
+    return ESP32Service.send_effect(effect_name)

@@ -1,12 +1,9 @@
-"""
-main_window.py
-
-Main application window for Smart Showroom AI.
-"""
-
 from PySide6.QtWidgets import (
     QMainWindow,
-    QTabWidget,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QStackedWidget,
 )
 
 from app.ui.pages.dashboard_page import DashboardPage
@@ -14,103 +11,112 @@ from app.ui.pages.products_page import ProductsPage
 from app.ui.pages.devices_page import DevicesPage
 from app.ui.pages.voice_page import VoicePage
 from app.ui.pages.led_page import LedPage
+from app.ui.pages.media_page import MediaPage
 from app.ui.pages.settings_page import SettingsPage
+
+from app.ui_comp.layout.sidebar import Sidebar
+from app.ui_comp.layout.topbar import TopBar
+from app.ui_comp.layout.statusbar import StatusBar
 
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, runtime):
-
+    def __init__(self, runtime=None):
         super().__init__()
 
         self.runtime = runtime
+        self.pages = {}
 
-        self.setWindowTitle(
-            "Smart Showroom AI"
-        )
+        self.setWindowTitle("Smart Showroom AI")
+        self.resize(1400, 850)
 
-        self.resize(
-            1200,
-            800
-        )
+        self.build_ui()
+        self.register_pages()
 
-        # -------------------------------------------------
-        # Pages
-        # -------------------------------------------------
+        self.goto_page("Dashboard")
 
-        self.dashboard_page = DashboardPage(runtime)
+    def build_ui(self):
+        central = QWidget()
+        self.setCentralWidget(central)
 
-        self.products_page = ProductsPage()
+        root = QVBoxLayout(central)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
 
-        self.devices_page = DevicesPage()
+        self.topbar = TopBar()
+        root.addWidget(self.topbar)
 
-        self.voice_page = VoicePage(runtime)
+        body = QHBoxLayout()
+        body.setContentsMargins(0, 0, 0, 0)
+        body.setSpacing(0)
 
-        self.led_page = LedPage(runtime)
+        root.addLayout(body, 1)
 
-        self.settings_page = SettingsPage()
+        self.sidebar = Sidebar()
+        self.sidebar.page_changed.connect(self.goto_page)
 
-        # -------------------------------------------------
-        # Tabs
-        # -------------------------------------------------
+        body.addWidget(self.sidebar)
 
-        self.tabs = QTabWidget()
+        self.stack = QStackedWidget()
+        body.addWidget(self.stack, 1)
 
-        self.tabs.addTab(
-            self.dashboard_page,
-            "Dashboard"
-        )
+        self.statusbar = StatusBar()
+        root.addWidget(self.statusbar)
 
-        self.tabs.addTab(
-            self.products_page,
-            "Products"
-        )
+    def register_pages(self):
+        self.add_page("Dashboard", DashboardPage(self.runtime))
+        self.add_page("Products", ProductsPage(self.runtime))
+        self.add_page("Devices", DevicesPage(self.runtime))
+        self.add_page("LED Effects", LedPage(self.runtime))
+        self.add_page("Media", MediaPage(self.runtime))
+        self.add_page("Voice", VoicePage(self.runtime))
+        self.add_page("Settings", SettingsPage(self.runtime))
 
-        self.tabs.addTab(
-            self.devices_page,
-            "Devices"
-        )
+        print("Registered pages:")
+        for name in self.pages:
+            print("-", name)
 
-        self.tabs.addTab(
-            self.voice_page,
-            "Voice"
-        )
+    def add_page(self, name, widget):
+        self.pages[name] = widget
+        self.stack.addWidget(widget)
 
-        self.tabs.addTab(
-            self.led_page,
-            "LED"
-        )
+    def goto_page(self, name):
+        print("Goto page:", name)
 
-        self.tabs.addTab(
-            self.settings_page,
-            "Settings"
-        )
+        page = self.pages.get(name)
 
-        self.tabs.currentChanged.connect(
-            self.refresh_page
-        )
+        if not page:
+            print("PAGE NOT FOUND:", name)
+            return
 
-        self.setCentralWidget(
-            self.tabs
-        )
+        self.stack.setCurrentWidget(page)
 
-    # -------------------------------------------------
+        if hasattr(self.statusbar, "set_status"):
+            self.statusbar.set_status(f"Current Page : {name}")
 
-    def refresh_page(self, index):
+        self.refresh_page(page)
 
-        page = self.tabs.widget(index)
+    def refresh_page(self, page):
+        refresh_methods = [
+            "refresh_dashboard",
+            "refresh_table",
+            "refresh_devices",
+            "refresh_customers",
+            "load_products",
+        ]
 
-        if page == self.dashboard_page:
-            self.dashboard_page.refresh_customers()
+        for method_name in refresh_methods:
+            if hasattr(page, method_name):
+                try:
+                    getattr(page, method_name)()
+                except Exception as error:
+                    print(f"{method_name} error:", error)
 
-        elif page == self.products_page:
-            self.products_page.refresh_table()
+    def closeEvent(self, event):
+        try:
+            if self.runtime and hasattr(self.runtime, "stop"):
+                self.runtime.stop()
+        except Exception as error:
+            print("Runtime stop error:", error)
 
-        elif page == self.devices_page:
-            self.devices_page.refresh_table()
-
-        elif page == self.voice_page:
-            self.voice_page.refresh_devices()
-
-        elif page == self.led_page:
-            self.led_page.refresh_devices()
+        event.accept()

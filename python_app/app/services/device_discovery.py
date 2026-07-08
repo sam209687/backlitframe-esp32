@@ -12,6 +12,7 @@ import threading
 
 from app.core.database import get_session
 from app.models.device import Device
+from app.services.esp32_service import ESP32Service
 
 
 
@@ -115,6 +116,8 @@ class DeviceDiscovery:
 
         if not name:
             return
+
+        ESP32Service.set_ip(ip)
 
         session = get_session()
 

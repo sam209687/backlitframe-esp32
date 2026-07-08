@@ -115,7 +115,6 @@ class MediaEngine:
     # -------------------------------------------------
 
     def media_changed(self, media):
-        self.on_media_changed(media)
 
         if self.on_media_changed:
             self.on_media_changed(media)

@@ -1,15 +1,16 @@
 """
-Modern Sidebar
+sidebar.py
+
+Application sidebar navigation.
 """
 
 from PySide6.QtCore import Signal
-
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
+    QPushButton,
+    QLabel,
 )
-
-from app.ui_comp.base import BaseButton
 
 
 class Sidebar(QWidget):
@@ -17,57 +18,49 @@ class Sidebar(QWidget):
     page_changed = Signal(str)
 
     def __init__(self):
-
         super().__init__()
 
-        self.setFixedWidth(220)
+        self.buttons = {}
+        self.build_ui()
 
+    def build_ui(self):
         layout = QVBoxLayout(self)
-
-        layout.setContentsMargins(12,12,12,12)
-
+        layout.setContentsMargins(12, 16, 12, 16)
         layout.setSpacing(8)
 
+        title = QLabel("Smart Showroom AI")
+        title.setStyleSheet(
+            """
+            font-size:16px;
+            font-weight:700;
+            padding:8px;
+            """
+        )
+        layout.addWidget(title)
+
         pages = [
-
-            ("Dashboard","fa5s.home"),
-
-            ("Products","fa5s.box"),
-
-            ("LED Effects","fa5s.lightbulb"),
-
-            ("Media","fa5s.images"),
-
-            ("Voice","fa5s.microphone"),
-
-            ("Scheduler","fa5s.clock"),
-
-            ("Relay","fa5s.plug"),
-
-            ("Settings","fa5s.cog"),
-
+            "Dashboard",
+            "Products",
+            "Devices",
+            "LED Effects",
+            "Media",
+            "Voice",
+            "Settings",
         ]
 
-        for name,icon in pages:
+        for page_name in pages:
+            button = QPushButton(page_name)
+            button.setMinimumHeight(40)
 
-            btn = BaseButton(
-
-                name,
-
-                icon=icon,
-
-                button_type=BaseButton.SECONDARY
-
+            button.clicked.connect(
+                lambda checked=False, name=page_name: self.on_page_clicked(name)
             )
 
-            btn.clicked.connect(
-
-                lambda _,n=name:
-
-                self.page_changed.emit(n)
-
-            )
-
-            layout.addWidget(btn)
+            self.buttons[page_name] = button
+            layout.addWidget(button)
 
         layout.addStretch()
+
+    def on_page_clicked(self, page_name):
+        print("Sidebar clicked:", page_name)
+        self.page_changed.emit(page_name)

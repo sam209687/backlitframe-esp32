@@ -18,7 +18,7 @@ class WakeWordService:
         session = get_session()
 
         rows = session.execute(text("""
-            SELECT keyword
+            SELECT phrase
             FROM welcome_keywords
             WHERE enabled=1
         """))

@@ -23,7 +23,7 @@ from app.ui.widgets.media_display_widget import MediaDisplayWidget
 
 class ShowroomWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, media_engine=None):
 
         super().__init__()
 
@@ -38,7 +38,7 @@ class ShowroomWindow(QMainWindow):
 
         # -------------------------
 
-        self.media_engine = MediaEngine()
+        self.media_engine = media_engine or MediaEngine()
 
         self.display = MediaDisplayWidget(
             self.media_engine.video_widget()

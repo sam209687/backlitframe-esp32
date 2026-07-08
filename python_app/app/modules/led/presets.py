@@ -5,6 +5,7 @@ Keep this list in sync with esp32_firmware/src/led/led_controller.h
 """
 
 EFFECT_PRESETS = {
+    "none": "NONE",
     "sesame": "SESAME",
     "groundnut": "GROUNDNUT",
     "coconut": "COCONUT",
@@ -12,6 +13,13 @@ EFFECT_PRESETS = {
     "pc_mode": "PC_MODE",
     "cozy_reading": "COZY_READING",
     "filling_oil": "FILLING_OIL",
+
+    "rainbow": "RAINBOW",
+    "breathing": "BREATHING",
+    "chase": "CHASE",
+    "sparkle": "SPARKLE",
+    "fill": "FILL",
+    "off": "OFF",
 }
 
 

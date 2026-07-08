@@ -128,6 +128,10 @@ class RuntimeManager:
             text
         )
 
+        self.change_state(
+            ShowroomState.LISTENING
+        )
+
     # -------------------------------------------------
 
     def on_listening(self, timeout):
